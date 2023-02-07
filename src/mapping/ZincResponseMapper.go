@@ -23,9 +23,16 @@ func GetZincRecords(zinc_response *[]byte) ([]interface{}, error) {
 		return nil, fmt.Errorf("error trying to get data from zinc. %v", response_err.(string))
 	}
 
-	hitss := result["hits"].(map[string]interface{})
-	hits := hitss["hits"].([]interface{})
+	if result["hits"] == nil {
+		return nil, nil
+	}
 
+	hitss := result["hits"].(map[string]interface{})
+	if result["hits"] == nil {
+		return nil, nil
+	}
+
+	hits := hitss["hits"].([]interface{})
 	var response []interface{}
 	for _, hit := range hits {
 		response = append(response, hit.(map[string]interface{})["_source"])
