@@ -6,3 +6,4 @@ use ./src/models
 use ./src/constants
 use ./
 use ./src/router_functions
+use ./src/mapping
