@@ -10,10 +10,13 @@ type IRequestData interface {
 }
 
 type RecordQueryRequest struct {
-	SortFields []string
-	IndexPage  int
+	SortFields   []string
+	IndexPage    int
+	SpecificText string
 }
 
+// Convert any model to IRequestData.
+// Model value should be a pointer.
 func Model2IRequestData(model interface{}) *IRequestData {
 	var buf bytes.Buffer
 
