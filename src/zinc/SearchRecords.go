@@ -1,23 +1,27 @@
 package zinc_handler
 
 import (
-	"bytes"
-	"encoding/json"
+	. "constants_project"
 	"io"
 	"log"
 	models "models_zinc"
 	"net/http"
 )
 
+type InternalQuery struct {
+	Term string `json:"term"`
+}
+
 type RecordQuery struct {
-	SortFields []string `json:"sort_fields"`
-	From       int      `json:"from"`
-	MaxResults int      `json:"max_results"`
-	SearchType string   `json:"search_type"`
+	SortFields []string      `json:"sort_fields"`
+	From       int           `json:"from"`
+	MaxResults int           `json:"max_results"`
+	SearchType string        `json:"search_type"`
+	Query      InternalQuery `json:"query"`
 }
 
 func searchRecords(query *models.IRequestData) ([]byte, error) {
-	req, err := http.NewRequest("POST", "http://localhost:4080/api/email/_search", *query)
+	req, err := http.NewRequest("POST", ZINC_HOST+"/api/"+ZINC_EMAIL_INDEX+"/_search", *query)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -41,25 +45,39 @@ func searchRecords(query *models.IRequestData) ([]byte, error) {
 	return body, nil
 }
 
-// Index_Page starts in zero.
-func SearchRecords(recordQueryRequest *models.RecordQueryRequest) ([]byte, error) {
+// Return first records sorted by Sort Fields. Index starts to count in 0.
+func SearchAllRecordsBy(recordQueryRequest *models.RecordQueryRequest) ([]byte, error) {
 
-	max_results := 10
-	start_point := recordQueryRequest.IndexPage * max_results
+	recordQuery := SearchRecordsStandardStructure(recordQueryRequest)
+	data := models.Model2IRequestData(recordQuery)
 
-	recordQuery := RecordQuery{
-		SortFields: recordQueryRequest.SortFields,
-		From:       start_point,
-		MaxResults: max_results,
-		SearchType: "alldocuments",
-	}
-
-	s, _ := json.Marshal(&recordQuery)
-	var buf bytes.Buffer
-
-	json.NewEncoder(&buf).Encode(s)
-
-	data := models.Model2IRequestData(&recordQuery)
 	return searchRecords(data)
+}
 
+// Return first records sorted by Sort fields with some petition text. Index start to count in 0.
+func SearchLikeRecordsBy(recordQueryRequest *models.RecordQueryRequest) ([]byte, error) {
+
+	recordQuery := SearchRecordsStandardStructure(recordQueryRequest)
+	recordQuery.Query.Term = recordQueryRequest.SpecificText
+	recordQuery.SearchType = "match"
+
+	data := models.Model2IRequestData(recordQuery)
+	return searchRecords(data)
+}
+
+// Get a RecordQueryRequest and return a standard RecordQuery object intance.
+func SearchRecordsStandardStructure(recordQueryRequest *models.RecordQueryRequest) *RecordQuery {
+	index_page := recordQueryRequest.IndexPage
+	if index_page < 0 {
+		index_page = 0
+	}
+	max_results := 10
+	start_point := index_page * max_results
+
+	return &RecordQuery{
+		MaxResults: max_results,
+		From:       start_point,
+		SearchType: "alldocuments",
+		SortFields: recordQueryRequest.SortFields,
+	}
 }
