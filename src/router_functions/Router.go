@@ -2,6 +2,7 @@ package router_functions
 
 import (
 	"encoding/json"
+	. "mapping_zinc"
 	models "models_zinc"
 	"net/http"
 	"zinc_handler"
@@ -15,30 +16,54 @@ func handlerFuncSearchRecords(w http.ResponseWriter, r *http.Request) {
 
 	recordQuery := models.RecordQueryRequest{}
 	if err := json.NewDecoder(r.Body).Decode(&recordQuery); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err)
 		return
 	}
 
-	records, err := zinc_handler.SearchRecords(&recordQuery)
+	records, err := zinc_handler.SearchAllRecordsBy(&recordQuery)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err)
 	}
-	var result map[string]interface{}
-	json.Unmarshal(records, &result)
-	response_err := result["error"]
-	if response_err != nil {
-		json.NewEncoder(w).Encode(response_err)
+
+	response, err := GetZincRecords(&records)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err)
 		return
 	}
-	hitss := result["hits"].(map[string]interface{})
-	hits := hitss["hits"].([]interface{})
 
-	var response []interface{}
-	for _, hit := range hits {
-		response = append(response, hit.(map[string]interface{})["_source"])
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+func handlerFuncSearchLikeRecords(w http.ResponseWriter, r *http.Request) {
+
+	recordQuery := models.RecordQueryRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&recordQuery); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(err)
+		return
 	}
 
+	records, err := zinc_handler.SearchLikeRecordsBy(&recordQuery)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	response, err := GetZincRecords(&records)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
+
 }
 
 func StartServer(port string) {
@@ -57,5 +82,6 @@ func StartServer(port string) {
 		w.Write([]byte("welcome"))
 	})
 	r.Post("/search_records", handlerFuncSearchRecords)
+	r.Post("/find_records", handlerFuncSearchLikeRecords)
 	http.ListenAndServe(port, r)
 }
