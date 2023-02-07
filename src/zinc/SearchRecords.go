@@ -23,22 +23,22 @@ type RecordQuery struct {
 func searchRecords(query *models.IRequestData) ([]byte, error) {
 	req, err := http.NewRequest("POST", ZINC_HOST+"/api/"+ZINC_EMAIL_INDEX+"/_search", *query)
 	if err != nil {
-		log.Fatal(err)
+		log.Default().Panic(err)
 		return nil, err
 	}
 	SetHeaders(req)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		log.Default().Panic(err)
 		return nil, err
 	}
 
-	defer resp.Body.Close()
 	log.Println(resp.StatusCode)
+	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		log.Default().Panic(err)
 		return nil, err
 	}
 

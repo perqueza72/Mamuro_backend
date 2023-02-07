@@ -25,6 +25,7 @@ func handlerFuncSearchRecords(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err)
+		return
 	}
 
 	response, err := GetZincRecords(&records)
