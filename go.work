@@ -1,9 +1,15 @@
 go 1.19
 
 use ./src/zinc/test
+
 use ./src/zinc
+
 use ./src/models
+
 use ./src/constants
+
 use ./
+
 use ./src/router_functions
+
 use ./src/mapping
