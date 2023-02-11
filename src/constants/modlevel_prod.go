@@ -3,7 +3,9 @@
 
 package constants
 
-const ZINC_HOST = "http://172.17.0.2:4080"
+const ZINC_HOST = "http://zinc_db"
 const ZINC_EMAIL_INDEX = "email"
+
+const VUE_URL = "http://front_end"
 
 const HOST_PORT = ":8080"

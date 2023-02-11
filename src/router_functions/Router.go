@@ -1,6 +1,7 @@
 package router_functions
 
 import (
+	constants "constants_project"
 	"encoding/json"
 	. "mapping_zinc"
 	models "models_zinc"
@@ -72,7 +73,7 @@ func StartServer(port string) {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://172.17.0.3:3000/", "http://172.17.0.4:3000/"},
+		AllowedOrigins:   []string{constants.VUE_URL},
 		AllowedMethods:   []string{"POST", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
